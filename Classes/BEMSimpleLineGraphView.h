@@ -319,6 +319,11 @@
 - (NSString *)lineGraph:(BEMSimpleLineGraphView *)graph labelOnXAxisForIndex:(NSInteger)index;
 
 
+//------- Y AXIS -------//
+
+- (NSString *)lineGraph:(BEMSimpleLineGraphView *)graph labelOnYAxisForValue:(NSNumber *)dotValue;
+
+
 @end
 
 

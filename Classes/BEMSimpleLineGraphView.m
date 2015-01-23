@@ -281,6 +281,9 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
             NSDictionary *labelAttributes = @{NSFontAttributeName: self.labelFont};
             NSString *maxValueString = [NSString stringWithFormat:@"%li",
                                         (long)[self calculateMaximumPointValue].integerValue];
+            if ([self.dataSource respondsToSelector:@selector(lineGraph:labelOnYAxisForValue:)]) {
+                maxValueString = [self.dataSource lineGraph:self labelOnYAxisForValue:@([self calculateMaximumPointValue].integerValue)];
+            }
             NSString *minValueString = [NSString stringWithFormat:@"%li",
                                         (long)[self calculateMinimumPointValue].integerValue];
             NSString *longestString = nil;
@@ -290,9 +293,10 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
             else longestString = maxValueString;
 
             self.popUpLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 20)];
-            if ([self.delegate respondsToSelector:@selector(popUpSuffixForlineGraph:)])
-                self.popUpLabel.text = [NSString stringWithFormat:@"%@%@", longestString, [self.delegate popUpSuffixForlineGraph:self]];
-            else self.popUpLabel.text = longestString;
+            
+            //if ([self.delegate respondsToSelector:@selector(popUpSuffixForlineGraph:)])
+              //  self.popUpLabel.text = [NSString stringWithFormat:@"%@%@", longestString,[self.delegate popUpSuffixForlineGraph:self]];
+            self.popUpLabel.text = longestString;
             self.popUpLabel.textAlignment = 1;
             self.popUpLabel.numberOfLines = 1;
             self.popUpLabel.font = self.labelFont;
@@ -683,7 +687,14 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
         for (NSNumber *dotValue in dotValues) {
             CGFloat yAxisPosition = [self yPositionForDotValue:dotValue.floatValue];
             UILabel *labelYAxis = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.YAxisLabelXOffset - 5, 15)];
-            labelYAxis.text = dotValue.stringValue;
+            if ([self.dataSource respondsToSelector:@selector(lineGraph:labelOnYAxisForValue:)]) {
+                labelYAxis.text = [self.dataSource lineGraph:self labelOnYAxisForValue:dotValue];
+                [labelYAxis setAdjustsFontSizeToFitWidth:YES];
+                [labelYAxis setMinimumScaleFactor:.5];
+            }
+            else {
+                labelYAxis.text = dotValue.stringValue;
+            }
             labelYAxis.textAlignment = NSTextAlignmentRight;
             labelYAxis.font = self.labelFont;
             labelYAxis.textColor = self.colorYaxisLabel;
@@ -770,7 +781,12 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
     UILabel *permanentPopUpLabel = [[UILabel alloc] init];
     permanentPopUpLabel.textAlignment = NSTextAlignmentCenter;
     permanentPopUpLabel.numberOfLines = 0;
-    permanentPopUpLabel.text = [NSString stringWithFormat:@"%@", @((NSInteger) circleDot.absoluteValue)];
+    if ([self.dataSource respondsToSelector:@selector(lineGraph:labelOnYAxisForValue:)]) {
+        permanentPopUpLabel.text = [self.dataSource lineGraph:self labelOnYAxisForValue:@(circleDot.absoluteValue)];
+    }
+    else {
+        permanentPopUpLabel.text = [NSString stringWithFormat:@"%@", @((NSInteger) circleDot.absoluteValue)];
+    }
     permanentPopUpLabel.font = self.labelFont;
     permanentPopUpLabel.backgroundColor = [UIColor clearColor];
     [permanentPopUpLabel sizeToFit];
@@ -1013,10 +1029,13 @@ typedef NS_ENUM(NSInteger, BEMInternalTags)
     self.popUpView.center = CGPointMake(self.xCenterLabel, self.yCenterLabel);
     self.popUpLabel.center = self.popUpView.center;
     
-    if ([self.delegate respondsToSelector:@selector(popUpSuffixForlineGraph:)])
-        self.popUpLabel.text = [NSString stringWithFormat:@"%li%@", (long)[dataPoints[(NSInteger) closestDot.tag - DotFirstTag100] integerValue], [self.delegate popUpSuffixForlineGraph:self]];
-    else
+    if ([self.dataSource respondsToSelector:@selector(lineGraph:labelOnYAxisForValue:)]) {
+        self.popUpLabel.text = [self.dataSource lineGraph:self labelOnYAxisForValue:@([dataPoints[(NSInteger) closestDot.tag - DotFirstTag100] integerValue])];
+    }
+    else {
         self.popUpLabel.text = [NSString stringWithFormat:@"%li", (long)[dataPoints[(NSInteger) closestDot.tag - DotFirstTag100] integerValue]];
+    }
+
     if (self.enableYAxisLabel == YES && self.popUpView.frame.origin.x <= self.YAxisLabelXOffset) {
         self.xCenterLabel = self.popUpView.frame.size.width/2;
         self.popUpView.center = CGPointMake(self.xCenterLabel + self.YAxisLabelXOffset + 1, self.yCenterLabel);
